@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASCII Wallpaper Generator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, sans-serif;
+    background: #111;
+    color: #e0e0e0;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+  h1 {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #aaa;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .col { display: flex; flex-direction: column; gap: 0.3rem; }
+  label { font-size: 12px; color: #888; }
+  textarea {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    width: 100%;
+    height: 180px;
+    resize: vertical;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 10px;
+    color: #e0e0e0;
+    margin-bottom: 1rem;
+  }
+  select, input[type=range], input[type=color] {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #e0e0e0;
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+  input[type=color] {
+    height: 38px;
+    cursor: pointer;
+    padding: 3px;
+  }
+  .range-row { display: flex; align-items: center; gap: 8px; }
+  .range-row input { flex: 1; }
+  .range-val { font-size: 12px; color: #666; min-width: 36px; text-align: right; }
+  .preview-wrap {
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+    padding: 1rem;
+  }
+  canvas { max-width: 100%; display: block; border-radius: 4px; }
+  .size-note { font-size: 11px; color: #555; text-align: center; margin-bottom: 0.75rem; }
+  .btn-row { display: flex; gap: 10px; }
+  .textarea-controls {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 4px;
+    justify-content: flex-end;
+  }
+  .textarea-controls button {
+    flex: none;
+    padding: 4px 10px;
+    font-size: 11px;
+    border-radius: 4px;
+    border: 1px solid #333;
+    background: #1a1a1a;
+    color: #888;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .textarea-controls button:hover { background: #2a2a2a; color: #ccc; }
+  button {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    background: #1e1e1e;
+    color: #e0e0e0;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  button:hover { background: #2a2a2a; }
+  button.primary {
+    background: #1a3a1a;
+    border-color: #2a6a2a;
+    color: #5fdf5f;
+  }
+  button.primary:hover { background: #1f481f; }
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-overlay img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 4px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8);
+    object-fit: contain;
+  }
+  .modal-close {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    background: #1e1e1e;
+    border: 1px solid #444;
+    color: #ccc;
+    font-size: 18px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+  }
+  .ctrl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>⬛ ASCII Wallpaper Generator</h1>
+
+<label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">ASCII Text</label>
+<div class="textarea-controls">
+  <button onclick="clearAscii()">Clear</button>
+  <button onclick="pasteAscii()">Paste</button>
+</div>
+<textarea id="ascii">⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡄⡲⢎⣯⢳⣏⠶⣦⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡐⢎⠼⣹⢮⣳⣛⣾⣛⣷⣽⢯⣷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⡠⢚⡱⢏⣳⢏⡿⣽⣿⣯⣷⡿⣟⣮⡟⣷⡄⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠱⡠⢥⣙⠮⣱⢯⣝⣾⣻⣿⣿⢿⣿⣳⣟⢯⣿⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠱⡀⠇⠹⡾⢁⠿⡈⣇⡿⣾⣿⢏⡷⣷⢿⣏⡾⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⠀⠀⠘⡤⣍⠅⠀⠈⠁⠋⢟⡼⣕⣯⣫⠇⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢇⠀⠀⠀⠀⢄⢿⣭⣧⠀⠀⠠⠀⢸⣻⣽⢞⡽⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⡀⠀⠤⡐⠀⠀⢟⣷⣛⡶⢄⣠⣿⣻⢷⢫⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠄⠀⠀⠀⠰⠀⠀⠈⣧⢷⡀⢆⢭⡳⢍⣷⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⠈⡶⢂⢷⡺⢽⢶⣹⠊⠀⣾⡏⠟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢡⠉⢍⢪⢹⢚⣦⣹⣀⢀⡾⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡂⠀⠀⠠⠁⠨⠐⡲⣹⣼⡞⣾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠌⠠⠠⡐⣤⣁⢯⣙⡷⣵⡺⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠲⠘⠣⠿⠙⠻⠘⢉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣼⡌⠠⡈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⢀⡀⠎⣇⠿⠈⡏⣶⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠹⢀⣀⣰⠈⢁⡁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠉⠁⠀⠀⠀⠀⠀⠁⠛⣦⡀⠀⠀⠀⠀⠀⠀⣀⡀⠂⠀⠀⡉⣩⠲⣀⡅⠂⠀⠀⠀⢀⣤⣞⠧⠚⠑⠘⠈⠞⠓⣤
+⠀⠀⢀⢠⢤⣀⠀⠀⠀⡀⠰⠖⠀⠁⠏⣳⠲⢤⢠⢎⣙⡉⠉⠉⠀⠉⡰⢭⣁⢒⡈⢁⡭⡰⣎⠟⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠘⠘⠃⢧⡈⡑⠀⠸⢁⠄⡲⢎⠄⡂⠀⠉⠀⠃⢂⠆⣂⠠⡄⢈⠀⠱⢂⠡⠈⠈⡁⣄⢆⠆⠀⠀⠀⠀⠀⡟⠉⡿⠦⠀⣰
+⠀⠡⢙⠀⢀⠣⡑⠀⠀⠉⠘⠁⠀⠈⢠⣤⠀⠠⢀⠀⠈⠦⡙⢬⢁⠎⠐⢢⡐⢆⠯⠙⠂⠁⠀⠀⠀⢰⠀⠈⠁⠀⠀⠀⡀⢒
+⠀⠀⠨⢆⢈⡎⠀⠀⠀⠀⠀⠀⠬⡡⢎⠀⠀⠀⠀⠉⠂⡴⡜⢦⣋⡎⢃⣡⠭⠀⠀⠀⠀⢀⡠⣴⠟⠋⠀⠀⠀⠀⠀⠀⠀⠈
+⠀⠀⠐⣫⠰⠀⠀⠀⠀⠀⠀⣠⠨⠓⠎⠹⡂⢤⢤⢤⡄⠓⣙⠶⣉⢀⡤⣄⢀⣀⡤⣖⠮⠋⠉⠀⠀⠀⢀⡀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⡕⢺⠀⠀⠀⠀⠀⠁⠰⡐⣄⠀⠀⠀⠀⠈⠀⢐⠦⡠⢆⠈⠁⠒⢁⡒⠈⠀⠀⠀⠀⢀⣀⢴⣺⠚⠃⣠⢠⠄⠀⠀⠀
+⠀⠀⠀⢸⡑⡆⠀⠀⠀⢌⡄⠀⠐⠌⣊⠐⣒⠲⠒⢤⢪⠱⣉⠆⣀⡠⢌⡩⣀⡠⢤⡔⣦⣻⠣⠛⠊⠁⢀⣰⠏⢀⠀⠀⠀⠀
+⠀⠀⠀⠨⣕⠂⠀⠀⠰⠈⠄⢢⠀⣀⢠⢤⠄⠀⠀⢀⢣⠣⣌⠃⠂⠙⠂⠑⠒⡙⠊⠙⠁⠀⢀⣀⣤⡲⠯⠁⣰⠇⠀⠀⠀⠀
+⠀⠀⠀⠐⡌⠀⠀⠀⢘⠀⠨⡄⡈⡘⠆⠤⢄⠒⡒⠌⢃⡜⡰⢄⡀⡀⣠⠴⠂⠀⣄⢠⠴⣪⡕⠏⠒⠁⢀⡰⠇⡸⠀⠀⠀⠀
+⠀⠀⠀⠰⠀⠀⠀⢀⠀⡁⠀⠀⠀⢀⣈⣀⡈⠀⠀⠸⢰⠀⠇⠀⠸⢰⢀⠇⠸⠹⣆⡏⠶⠁⠀⠀⠀⡰⣈⠏⢰⡈⠀⠀⠀⠀
+⠀⠀⠀⢀⠠⠁⠀⢠⠀⠁⠑⠰⣚⣉⠂⡈⠠⢀⠂⠘⠤⢉⠆⠑⠄⡀⠈⠬⠌⠁⣠⠀⠀⠀⣀⠴⣜⠗⠁⠠⣎⢸⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠢⢀⠈⠁⠀⠀⠀⠁⢂⡘⠀⠔⡠⠀⠢⠰⡀⠐⠈⡑⠃⠤⣀⠡⢄⠎⡽⠜⢊⠀⠀⣰⠜⠂⡼⠀⠀⠀⠀
+⠀⠀⠀⠀⠂⠀⢸⠀⠀⠑⠄⢤⡒⣍⠋⡠⠄⣑⠊⠀⠀⠀⠡⡐⢄⠁⠀⢨⠀⠀⣡⠌⠀⠀⠀⣠⢐⠞⠡⠁⠠⡝⠀⠀⠀⠀
+⠀⠀⠀⠀⠂⠀⠀⢂⠀⠌⠐⠢⠐⠢⡑⠤⢃⠂⠀⠀⠀⠀⠐⡠⢆⠑⡊⡅⢠⠐⣀⢀⢠⢋⠼⢐⠉⠀⠀⣔⠣⡄⠀⠀⠀⠀
+⠀⠀⠀⠀⠐⠀⡀⢈⠐⢄⢀⡠⠆⠱⣈⠑⠀⠀⠀⠀⠀⠀⠀⠀⠆⠱⣀⢊⠄⠣⢄⡘⠂⠁⠀⠀⣀⠔⡜⠀⢀⠃⠀⠀⠀⠀</textarea>
+
+<div class="ctrl-grid">
+  <div class="col">
+    <label>Resolution</label>
+    <select id="orient">
+      <option value="fhd-l">FHD Landscape — 1920×1080</option>
+      <option value="fhd-p">FHD Portrait — 1080×1920</option>
+      <option value="2k-l">2K Landscape — 2560×1440</option>
+      <option value="2k-p">2K Portrait — 1440×2560</option>
+      <option value="4k-l">4K Landscape — 3840×2160</option>
+      <option value="4k-p">4K Portrait — 2160×3840</option>
+    </select>
+  </div>
+  <div class="col">
+    <label>Font</label>
+    <select id="fontfam">
+      <option value="'Courier New', monospace">Courier New</option>
+      <option value="'Lucida Console', monospace">Lucida Console</option>
+      <option value="monospace">System Monospace</option>
+    </select>
+  </div>
+  <div class="col">
+    <label>Font size</label>
+    <div class="range-row">
+      <input type="range" id="fsize" min="8" max="60" value="20" step="1">
+      <span class="range-val" id="fsizeOut">20px</span>
+    </div>
+  </div>
+  <div class="col">
+    <label>Text color</label>
+    <input type="color" id="txtColor" value="#00ff41">
+  </div>
+  <div class="col">
+    <label>Background color</label>
+    <input type="color" id="bgColor" value="#0d0d0d">
+  </div>
+  <div class="col">
+    <label>Alignment</label>
+    <select id="align">
+      <option value="center">Center</option>
+      <option value="left">Left</option>
+      <option value="right">Right</option>
+    </select>
+  </div>
+  <div class="col">
+    <label>Line height</label>
+    <div class="range-row">
+      <input type="range" id="lheight" min="1" max="2.5" value="1.4" step="0.05">
+      <span class="range-val" id="lhOut">1.4×</span>
+    </div>
+  </div>
+  <div class="col">
+    <label>Scanlines</label>
+    <div class="range-row">
+      <input type="range" id="scanlines" min="0" max="60" value="0" step="1">
+      <span class="range-val" id="slOut">0%</span>
+    </div>
+  </div>
+</div>
+
+<div class="size-note" id="sizeBadge">1920 × 1080 px</div>
+<div class="preview-wrap">
+  <canvas id="cvs"></canvas>
+</div>
+
+<div class="btn-row">
+  <button onclick="render()">↺ Refresh preview</button>
+  <button onclick="openModal()">⤢ Full preview</button>
+  <button class="primary" onclick="download()">⬇ Download PNG</button>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="closeModal()">
+  <button class="modal-close" onclick="closeModal()">✕</button>
+  <img id="modalImg" src="" alt="preview">
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function clearAscii() {
+  $('ascii').value = '';
+  render();
+}
+
+async function pasteAscii() {
+  try {
+    const text = await navigator.clipboard.readText();
+    $('ascii').value = text;
+    render();
+  } catch {
+    $('ascii').focus();
+    document.execCommand('paste');
+    render();
+  }
+}
+
+const RESOLUTIONS = {
+  'fhd-l': [1920, 1080], 'fhd-p': [1080, 1920],
+  '2k-l':  [2560, 1440], '2k-p':  [1440, 2560],
+  '4k-l':  [3840, 2160], '4k-p':  [2160, 3840],
+};
+
+function getConfig() {
+  const [W, H] = RESOLUTIONS[$('orient').value];
+  return {
+    W, H,
+    text: $('ascii').value,
+    font: $('fontfam').value,
+    fsize: parseInt($('fsize').value),
+    txtColor: $('txtColor').value,
+    bgColor: $('bgColor').value,
+    align: $('align').value,
+    lheight: parseFloat($('lheight').value),
+    scanlines: parseInt($('scanlines').value),
+  };
+}
+
+function drawToCanvas(canvas, cfg) {
+  const { W, H, text, font, fsize, txtColor, bgColor, align, lheight, scanlines } = cfg;
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, W, H);
+
+  if (scanlines > 0) {
+    for (let y = 0; y < H; y += 4) {
+      ctx.fillStyle = `rgba(255,255,255,${scanlines / 2000})`;
+      ctx.fillRect(0, y, W, 2);
+    }
+  }
+
+  ctx.font = `${fsize}px ${font}`;
+  ctx.fillStyle = txtColor;
+  ctx.textBaseline = 'top';
+
+  const lines = text.split('\n');
+  const lineH = fsize * lheight;
+  const totalH = lines.length * lineH;
+  const startY = Math.max((H - totalH) / 2, 20);
+
+  lines.forEach((line, i) => {
+    const y = startY + i * lineH;
+    const lw = ctx.measureText(line).width;
+    let x;
+    if (align === 'center') x = (W - lw) / 2;
+    else if (align === 'right') x = W - lw - 60;
+    else x = 60;
+    ctx.fillText(line, x, y);
+  });
+}
+
+function render() {
+  const cfg = getConfig();
+  const preview = $('cvs');
+  drawToCanvas(preview, cfg);
+  const maxW = preview.parentElement.clientWidth - 32;
+  const scale = Math.min(maxW / cfg.W, 300 / cfg.H, 1);
+  preview.style.width = Math.round(cfg.W * scale) + 'px';
+  preview.style.height = Math.round(cfg.H * scale) + 'px';
+  $('sizeBadge').textContent = `${cfg.W} × ${cfg.H} px — scaled preview`;
+}
+
+function openModal() {
+  const cfg = getConfig();
+  const c = document.createElement('canvas');
+  drawToCanvas(c, cfg);
+  $('modalImg').src = c.toDataURL('image/png');
+  $('modal').classList.add('open');
+}
+
+function closeModal() {
+  $('modal').classList.remove('open');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+function download() {
+  const cfg = getConfig();
+  const c = document.createElement('canvas');
+  drawToCanvas(c, cfg);
+  const a = document.createElement('a');
+  a.download = `wallpaper_${cfg.W}x${cfg.H}.png`;
+  a.href = c.toDataURL('image/png');
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+['ascii','orient','fontfam','txtColor','bgColor','align'].forEach(id => {
+  $(id).addEventListener('change', render);
+  $(id).addEventListener('input', render);
+});
+
+$('fsize').addEventListener('input', () => {
+  $('fsizeOut').textContent = $('fsize').value + 'px';
+  render();
+});
+$('lheight').addEventListener('input', () => {
+  $('lhOut').textContent = parseFloat($('lheight').value).toFixed(2) + '×';
+  render();
+});
+$('scanlines').addEventListener('input', () => {
+  $('slOut').textContent = $('scanlines').value + '%';
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
