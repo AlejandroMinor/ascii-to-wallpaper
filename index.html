@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ASCII Wallpaper Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anonymous+Pro&family=Courier+Prime&family=Cutive+Mono&family=Fira+Mono&family=IBM+Plex+Mono&family=Inconsolata&family=JetBrains+Mono&family=Martian+Mono&family=Nova+Mono&family=Overpass+Mono&family=Roboto+Mono&family=Share+Tech+Mono&family=Source+Code+Pro&family=Space+Mono&family=Ubuntu+Mono&family=VT323&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -34,7 +37,9 @@
     font-size: 12px;
     width: 100%;
     height: 180px;
-    resize: vertical;
+    resize: both;
+    overflow: auto;
+    white-space: pre;
     background: #1a1a1a;
     border: 1px solid #333;
     border-radius: 6px;
@@ -59,17 +64,34 @@
   .range-row { display: flex; align-items: center; gap: 8px; }
   .range-row input { flex: 1; }
   .range-val { font-size: 12px; color: #666; min-width: 36px; text-align: right; }
-  .preview-wrap {
-    border: 1px solid #2a2a2a;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-bottom: 1rem;
-    background: #000;
+  .step-btn {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    font-size: 15px;
+    line-height: 1;
+    border-radius: 4px;
+    border: 1px solid #333;
+    background: #1a1a1a;
+    color: #888;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 220px;
-    padding: 1rem;
+  }
+  .step-btn:hover { background: #2a2a2a; color: #ccc; }
+  .preview-wrap {
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    overflow: auto;
+    margin-bottom: 1rem;
+    background: #000;
+    max-height: 70vh;
+    padding: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
   }
   canvas { max-width: 100%; display: block; border-radius: 4px; }
   .size-note { font-size: 11px; color: #555; text-align: center; margin-bottom: 0.75rem; }
@@ -161,40 +183,61 @@
 <div class="textarea-controls">
   <button onclick="clearAscii()">Clear</button>
   <button onclick="pasteAscii()">Paste</button>
+  <button onclick="$('fileInput').click()">Load file</button>
+  <input type="file" id="fileInput" accept=".txt" style="display:none">
+  <span style="width:1px;background:#333;align-self:stretch;"></span>
+  <button class="step-btn" onclick="stepTextarea(-1)">−</button>
+  <span id="taSize" style="font-size:11px;color:#666;min-width:28px;text-align:center;">12px</span>
+  <button class="step-btn" onclick="stepTextarea(1)">+</button>
 </div>
-<textarea id="ascii">⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡄⡲⢎⣯⢳⣏⠶⣦⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡐⢎⠼⣹⢮⣳⣛⣾⣛⣷⣽⢯⣷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⡠⢚⡱⢏⣳⢏⡿⣽⣿⣯⣷⡿⣟⣮⡟⣷⡄⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠱⡠⢥⣙⠮⣱⢯⣝⣾⣻⣿⣿⢿⣿⣳⣟⢯⣿⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠱⡀⠇⠹⡾⢁⠿⡈⣇⡿⣾⣿⢏⡷⣷⢿⣏⡾⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⠀⠀⠘⡤⣍⠅⠀⠈⠁⠋⢟⡼⣕⣯⣫⠇⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢇⠀⠀⠀⠀⢄⢿⣭⣧⠀⠀⠠⠀⢸⣻⣽⢞⡽⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⡀⠀⠤⡐⠀⠀⢟⣷⣛⡶⢄⣠⣿⣻⢷⢫⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠄⠀⠀⠀⠰⠀⠀⠈⣧⢷⡀⢆⢭⡳⢍⣷⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⠈⡶⢂⢷⡺⢽⢶⣹⠊⠀⣾⡏⠟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢡⠉⢍⢪⢹⢚⣦⣹⣀⢀⡾⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡂⠀⠀⠠⠁⠨⠐⡲⣹⣼⡞⣾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠌⠠⠠⡐⣤⣁⢯⣙⡷⣵⡺⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠲⠘⠣⠿⠙⠻⠘⢉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣼⡌⠠⡈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⢀⡀⠎⣇⠿⠈⡏⣶⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠹⢀⣀⣰⠈⢁⡁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠉⠁⠀⠀⠀⠀⠀⠁⠛⣦⡀⠀⠀⠀⠀⠀⠀⣀⡀⠂⠀⠀⡉⣩⠲⣀⡅⠂⠀⠀⠀⢀⣤⣞⠧⠚⠑⠘⠈⠞⠓⣤
-⠀⠀⢀⢠⢤⣀⠀⠀⠀⡀⠰⠖⠀⠁⠏⣳⠲⢤⢠⢎⣙⡉⠉⠉⠀⠉⡰⢭⣁⢒⡈⢁⡭⡰⣎⠟⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠘⠘⠃⢧⡈⡑⠀⠸⢁⠄⡲⢎⠄⡂⠀⠉⠀⠃⢂⠆⣂⠠⡄⢈⠀⠱⢂⠡⠈⠈⡁⣄⢆⠆⠀⠀⠀⠀⠀⡟⠉⡿⠦⠀⣰
-⠀⠡⢙⠀⢀⠣⡑⠀⠀⠉⠘⠁⠀⠈⢠⣤⠀⠠⢀⠀⠈⠦⡙⢬⢁⠎⠐⢢⡐⢆⠯⠙⠂⠁⠀⠀⠀⢰⠀⠈⠁⠀⠀⠀⡀⢒
-⠀⠀⠨⢆⢈⡎⠀⠀⠀⠀⠀⠀⠬⡡⢎⠀⠀⠀⠀⠉⠂⡴⡜⢦⣋⡎⢃⣡⠭⠀⠀⠀⠀⢀⡠⣴⠟⠋⠀⠀⠀⠀⠀⠀⠀⠈
-⠀⠀⠐⣫⠰⠀⠀⠀⠀⠀⠀⣠⠨⠓⠎⠹⡂⢤⢤⢤⡄⠓⣙⠶⣉⢀⡤⣄⢀⣀⡤⣖⠮⠋⠉⠀⠀⠀⢀⡀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⡕⢺⠀⠀⠀⠀⠀⠁⠰⡐⣄⠀⠀⠀⠀⠈⠀⢐⠦⡠⢆⠈⠁⠒⢁⡒⠈⠀⠀⠀⠀⢀⣀⢴⣺⠚⠃⣠⢠⠄⠀⠀⠀
-⠀⠀⠀⢸⡑⡆⠀⠀⠀⢌⡄⠀⠐⠌⣊⠐⣒⠲⠒⢤⢪⠱⣉⠆⣀⡠⢌⡩⣀⡠⢤⡔⣦⣻⠣⠛⠊⠁⢀⣰⠏⢀⠀⠀⠀⠀
-⠀⠀⠀⠨⣕⠂⠀⠀⠰⠈⠄⢢⠀⣀⢠⢤⠄⠀⠀⢀⢣⠣⣌⠃⠂⠙⠂⠑⠒⡙⠊⠙⠁⠀⢀⣀⣤⡲⠯⠁⣰⠇⠀⠀⠀⠀
-⠀⠀⠀⠐⡌⠀⠀⠀⢘⠀⠨⡄⡈⡘⠆⠤⢄⠒⡒⠌⢃⡜⡰⢄⡀⡀⣠⠴⠂⠀⣄⢠⠴⣪⡕⠏⠒⠁⢀⡰⠇⡸⠀⠀⠀⠀
-⠀⠀⠀⠰⠀⠀⠀⢀⠀⡁⠀⠀⠀⢀⣈⣀⡈⠀⠀⠸⢰⠀⠇⠀⠸⢰⢀⠇⠸⠹⣆⡏⠶⠁⠀⠀⠀⡰⣈⠏⢰⡈⠀⠀⠀⠀
-⠀⠀⠀⢀⠠⠁⠀⢠⠀⠁⠑⠰⣚⣉⠂⡈⠠⢀⠂⠘⠤⢉⠆⠑⠄⡀⠈⠬⠌⠁⣠⠀⠀⠀⣀⠴⣜⠗⠁⠠⣎⢸⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠢⢀⠈⠁⠀⠀⠀⠁⢂⡘⠀⠔⡠⠀⠢⠰⡀⠐⠈⡑⠃⠤⣀⠡⢄⠎⡽⠜⢊⠀⠀⣰⠜⠂⡼⠀⠀⠀⠀
-⠀⠀⠀⠀⠂⠀⢸⠀⠀⠑⠄⢤⡒⣍⠋⡠⠄⣑⠊⠀⠀⠀⠡⡐⢄⠁⠀⢨⠀⠀⣡⠌⠀⠀⠀⣠⢐⠞⠡⠁⠠⡝⠀⠀⠀⠀
-⠀⠀⠀⠀⠂⠀⠀⢂⠀⠌⠐⠢⠐⠢⡑⠤⢃⠂⠀⠀⠀⠀⠐⡠⢆⠑⡊⡅⢠⠐⣀⢀⢠⢋⠼⢐⠉⠀⠀⣔⠣⡄⠀⠀⠀⠀
-⠀⠀⠀⠀⠐⠀⡀⢈⠐⢄⢀⡠⠆⠱⣈⠑⠀⠀⠀⠀⠀⠀⠀⠀⠆⠱⣀⢊⠄⠣⢄⡘⠂⠁⠀⠀⣀⠔⡜⠀⢀⠃⠀⠀⠀⠀</textarea>
+<textarea id="ascii" spellcheck="false" autocorrect="off" autocomplete="off">
+iIYVVVVXVVVVVVVVVYVYVYYVYYYYIIIIYYYIYVVVYYYYYYYYYVVYVVVVXVVVVVYI+.
+tYVXXXXXXVXXXXVVVYVVVVVVVVVVVVYVVVVVVVVVVVVVVVVVXXXXXVXXXXXXXVVYi.
+iYXRXRRRXXXXXXXXXXXVVXVXVVVVVVVVXXXVXVVXXXXXXXXXXXXXXRRRRRRRRRXVi.
+tVRRRRRRRRRRRRRRRXRXXXXXXXXXXXXXXRRXXXXRRRRXXXXXXXRRRRRRRRRRRRXV+.
+tVRRBBBRMBRRRRRRRRRXXRRRRRXt=+;;;;;==iVXRRRRXXXXRRRRRRRRMMBRRRRXi,
+tVRRBMBBMMBBBBBMBBRBBBRBX++=++;;;;;;:;;;IRRRRXXRRRBBBBBBMMBBBRRXi,
+iVRMMMMMMMMMMMMMMBRBBMMV==iIVYIi=;;;;:::;;XRRRRRRBBMMMMMMMMBBRRXi.
+iVRMMMMMMMMMMMMMMMMMMMY;IBWWWWMMXYi=;:::::;RBBBMMMMMMMMMMMMMMBBXi,
++VRMMRBMMMMMMMMMMMMMMY+;VMMMMMMMRXIi=;:::::=VVXXXRRRMMMMMMMMBBMXi;
+=tYYVVVXRRRXXRBMMMMMV+;=RBBMMMXVXXVYt;::::::ttYYVYVVRMMMMMMBXXVI+=
+;=tIYYVYYYYYYVVVMMMBt=;;+i=IBi+t==;;i;::::::+iitIIttYRMMMMMRXVVI=;
+;=IIIIYYYIIIIttIYItIt;;=VVYXBIVRXVVXI;::::::;+iitttttVMMBRRRVVVI+,
+;+++tttIttttiiii+i++==;;RMMMBXXMMMXI+;::::::;+ittttitYVXVYYIYVIi;;
+;===iiittiiIitiii++;;;;:IVRVi=iBXVIi;::::::::;==+++++iiittii+++=;;
+;;==+iiiiiiiiii+++=;;;;;;VYVIiiiVVt+;::::::::;++++++++++iti++++=;;
+;;=++iiii+i+++++iii==;;;::tXYIIYIi+=;:::::,::;+++++++++++++++++=;;
+;;;+==+ii+++++iiiiit=;;:::::=====;;;::::::::::+++i+++++++++i+++;;;
+;;;==+=+iiiiitttIIII+;;;:,::,;;;;:;=;;;::,::::=++++++++==++++++;;;
+:;====+tittiiittttti+;;::::,:=Ytiiiiti=;:::::,:;;==ii+ittItii+==;;
+;;+iiittIti+ii;;===;;:;::::;+IVXVVVVVVt;;;;;::::;;===;+IIiiti=;;;;
+;=++++iIti+ii+=;;;=;:::;;+VXBMMBBBBBBXY=;=;;:::::;=iYVIIttii++;;;;
+;;++iiiItttIi+++=;;:::;=iBMMMMMMMMMMMXI==;;,::;;:;;=+itIttIIti+;;;
+;=+++++i+tYIIiii;:,::;itXMMMMMMMMMMMBXti==;:;++=;:::::;=+iittti+;;
+;;+ii+ii+iitiIi;::::;iXBMMMMMWWWWWMMBXti+ii=;::::,,,,:::=;==+tI+;;
+;;iiiitItttti;:::;::=+itYXXMWWWWWWMBYt+;;::,,,,,,,,,,,,,:==;==;;;;
+:;=iIIIttIt+:;:::;;;==;+=+iiittttti+;;:,:,,,,::,,,,,,,,:::;=;==::;
+;::=+ittiii=;:::::;;;:;:;=++==;;==;:,,,,,,:;::::,,,,,,,,::;==;;::;
+:::;+iiiii=;::::,:;:::::;;:;;::;:::,,,,,,,:::;=;;;:,,,,,:::;;::::;
+:;;iIIIIII=;:::,:::::::,::::,:::,,,,,,,,,,,:;;=;:,,,,,,::::;=;:::;
+:;==++ii+;;;:::::::::::,,,,,,::,,,,,,,,,,,::::,,,,,,,,,,:,:::::::;
+::;;=+=;;;:::;;::,,,,,,,,,,,,,,,,,,,,,,,,,:,,,,,,,,,,,,,,,,,:::::;
+::;=;;;:;:::;;;;::,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,::,,::::;
+:;;:;::::::,::,,:,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,:::;
+:::::::::::;;;:,,,,,,,,,,,,,...,...,,,.,,,,,,,,,,,,.,,,,,,,,,,,,:;
+::::::::;=;;;;;::,,,,,,,,,,,.......,...,,,,,,,,,,,,.,,,,,,,,,,,,,;
+:::::,,:;=;;;;;;;iVXXXVt+:,,....,,,,....,.,,,,,,,.,.....,,,,,,,,:;
+:,,::,,:::;;;;;;=IVVVXXXXVXVt:,,,,,..,..,,,,.,,,,,..,.,,,,,,,,,,,;
+::,::,,,:,:::::,::;=iIYVXVVVVIYIi;,,.,.,,,::,,,,,,,,,,,,,,,,,,,,,.
+:,,,,,,,,,,,,,,,,::;+itIIIIIIi:;;i++=;;;;;;;;;::,,,...,,..,,,,,,,.
+:,,,,,,,,,,,,,,=iitVYi++iitt==it;;:;;;;::;;::::,,,......,,,,,,,::.
+::,,,,,,,,,,,,,++iiIVIi=;;=;+i;:;+:::,,,,,,,,,,,,,.....,,,,,,,,::,
+,,,,,,,,,,,,,,,;=+it=:::,,,,,,,,,,.,......,,.,..........,,,,,,,,::
+:,,,,,,,,,,,,,,,,:=:,,,,,,,,,,,,,,......................,.,,.,.,,:
+:,,,,,,,,,,,,,,,,,:,,,,,,,,,,..,........................,..,...,,:
+,,,,,,,,,,,,,,,,,,,.....................................,.......,,
+,,,,,,,,,.,,,,,,,...............................................,,
+itittiiiii+=++=;;=iiiiiiittiiiiii+iii===;++iiitiiiiiii+=====+ii=+i</textarea>
 
 <div class="ctrl-grid">
   <div class="col">
@@ -211,21 +254,37 @@
   <div class="col">
     <label>Font</label>
     <select id="fontfam">
-      <option value="'Courier New', monospace">Courier New</option>
-      <option value="'Lucida Console', monospace">Lucida Console</option>
+      <option value="'Share Tech Mono', monospace" selected>Share Tech Mono</option>
+      <option value="'VT323', monospace">VT323 — CRT terminal</option>
+      <option value="'Nova Mono', monospace">Nova Mono</option>
+      <option value="'Martian Mono', monospace">Martian Mono</option>
+      <option value="'Cutive Mono', monospace">Cutive Mono — typewriter</option>
+      <option value="'Inconsolata', monospace">Inconsolata</option>
+      <option value="'Source Code Pro', monospace">Source Code Pro</option>
+      <option value="'Anonymous Pro', monospace">Anonymous Pro</option>
+      <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+      <option value="'Fira Mono', monospace">Fira Mono</option>
+      <option value="'Overpass Mono', monospace">Overpass Mono</option>
+      <option value="'Ubuntu Mono', monospace">Ubuntu Mono</option>
+      <option value="'IBM Plex Mono', monospace">IBM Plex Mono</option>
+      <option value="'Roboto Mono', monospace">Roboto Mono</option>
+      <option value="'Space Mono', monospace">Space Mono</option>
+      <option value="'Courier Prime', monospace">Courier Prime — typewriter</option>
       <option value="monospace">System Monospace</option>
     </select>
   </div>
   <div class="col">
     <label>Font size</label>
     <div class="range-row">
-      <input type="range" id="fsize" min="8" max="60" value="20" step="1">
-      <span class="range-val" id="fsizeOut">20px</span>
+      <button class="step-btn" onclick="stepFont(-1)">−</button>
+      <input type="range" id="fsize" min="1" max="120" value="14" step="1">
+      <button class="step-btn" onclick="stepFont(1)">+</button>
+      <span class="range-val" id="fsizeOut">14px</span>
     </div>
   </div>
   <div class="col">
     <label>Text color</label>
-    <input type="color" id="txtColor" value="#00ff41">
+    <input type="color" id="txtColor" value="#00ad2b">
   </div>
   <div class="col">
     <label>Background color</label>
@@ -242,8 +301,8 @@
   <div class="col">
     <label>Line height</label>
     <div class="range-row">
-      <input type="range" id="lheight" min="1" max="2.5" value="1.4" step="0.05">
-      <span class="range-val" id="lhOut">1.4×</span>
+      <input type="range" id="lheight" min="1" max="2.5" value="1.0" step="0.05">
+      <span class="range-val" id="lhOut">1.0×</span>
     </div>
   </div>
   <div class="col">
@@ -253,9 +312,39 @@
       <span class="range-val" id="slOut">0%</span>
     </div>
   </div>
+  <div class="col">
+    <label>Glow</label>
+    <div class="range-row">
+      <input type="range" id="glow" min="0" max="30" value="0" step="1">
+      <span class="range-val" id="glowOut">0</span>
+    </div>
+  </div>
+  <div class="col">
+    <label>Horizontal offset</label>
+    <div class="range-row">
+      <input type="range" id="offsetX" min="-800" max="800" value="0" step="10">
+      <span class="range-val" id="offsetXOut">0px</span>
+    </div>
+  </div>
+  <div class="col">
+    <label>Vertical offset</label>
+    <div class="range-row">
+      <input type="range" id="offsetY" min="-800" max="800" value="0" step="10">
+      <span class="range-val" id="offsetYOut">0px</span>
+    </div>
+  </div>
 </div>
 
-<div class="size-note" id="sizeBadge">1920 × 1080 px</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;gap:8px;">
+  <span class="size-note" id="sizeBadge" style="margin:0;flex:1;">1920 × 1080 px</span>
+  <div style="display:flex;align-items:center;gap:6px;">
+    <button class="step-btn" onclick="stepZoom(-1)">−</button>
+    <span id="zoomOut" style="font-size:11px;color:#666;min-width:36px;text-align:center;">100%</span>
+    <button class="step-btn" onclick="stepZoom(1)">+</button>
+    <button class="step-btn" onclick="resetZoom()" style="width:auto;padding:0 8px;font-size:10px;">fit</button>
+  </div>
+  <button id="guidesBtn" onclick="toggleGuides()" style="flex:none;padding:4px 10px;font-size:11px;border-radius:4px;border:1px solid #333;background:#1a1a1a;color:#5fdf5f;cursor:pointer;">Guides: on</button>
+</div>
 <div class="preview-wrap">
   <canvas id="cvs"></canvas>
 </div>
@@ -273,6 +362,91 @@
 
 <script>
 const $ = id => document.getElementById(id);
+
+let showGuides = true;
+
+function toggleGuides() {
+  showGuides = !showGuides;
+  $('guidesBtn').textContent = `Guides: ${showGuides ? 'on' : 'off'}`;
+  $('guidesBtn').style.color = showGuides ? '#5fdf5f' : '#888';
+  render();
+}
+
+function drawGuides(canvas, W, H) {
+  const ctx = canvas.getContext('2d');
+  const lw = Math.max(2, Math.round(W / 960));
+
+  function hline(y, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(0, Math.round(y), W, lw);
+  }
+  function vline(x, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(Math.round(x), 0, lw, H);
+  }
+
+  // center cross
+  vline(W / 2, 'rgba(255,255,255,0.3)');
+  hline(H / 2, 'rgba(255,255,255,0.3)');
+
+  // rule of thirds
+  [1/3, 2/3].forEach(t => {
+    vline(W * t, 'rgba(255,255,255,0.12)');
+    hline(H * t, 'rgba(255,255,255,0.12)');
+  });
+}
+
+function stepFont(delta) {
+  const el = $('fsize');
+  el.value = Math.min(120, Math.max(1, parseInt(el.value) + delta));
+  $('fsizeOut').textContent = el.value + 'px';
+  render();
+}
+
+let taFontSize = 12;
+
+function stepTextarea(delta) {
+  taFontSize = Math.min(48, Math.max(1, taFontSize + delta));
+  $('ascii').style.fontSize = taFontSize + 'px';
+  $('taSize').textContent = taFontSize + 'px';
+}
+
+// pinch on textarea controls textarea font size
+let pinchDist0 = null;
+let taSize0 = null;
+document.addEventListener('DOMContentLoaded', () => {
+  $('ascii').addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchDist0 = Math.hypot(dx, dy);
+      taSize0 = taFontSize;
+    }
+  }, { passive: true });
+  $('ascii').addEventListener('touchmove', e => {
+    if (e.touches.length === 2 && pinchDist0) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      taFontSize = Math.min(48, Math.max(1, Math.round(taSize0 * dist / pinchDist0)));
+      $('ascii').style.fontSize = taFontSize + 'px';
+      $('taSize').textContent = taFontSize + 'px';
+    }
+  }, { passive: true });
+  $('ascii').addEventListener('touchend', () => { pinchDist0 = null; });
+});
+
+$('fileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    $('ascii').value = ev.target.result;
+    render();
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
 
 function clearAscii() {
   $('ascii').value = '';
@@ -309,11 +483,14 @@ function getConfig() {
     align: $('align').value,
     lheight: parseFloat($('lheight').value),
     scanlines: parseInt($('scanlines').value),
+    glow: parseInt($('glow').value),
+    offsetX: parseInt($('offsetX').value),
+    offsetY: parseInt($('offsetY').value),
   };
 }
 
 function drawToCanvas(canvas, cfg) {
-  const { W, H, text, font, fsize, txtColor, bgColor, align, lheight, scanlines } = cfg;
+  const { W, H, text, font, fsize, txtColor, bgColor, align, lheight, scanlines, glow, offsetX, offsetY } = cfg;
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d');
@@ -329,34 +506,72 @@ function drawToCanvas(canvas, cfg) {
   }
 
   ctx.font = `${fsize}px ${font}`;
-  ctx.fillStyle = txtColor;
   ctx.textBaseline = 'top';
 
   const lines = text.split('\n');
   const lineH = fsize * lheight;
   const totalH = lines.length * lineH;
-  const startY = Math.max((H - totalH) / 2, 20);
+  const startY = (H - totalH) / 2 + offsetY;
 
-  lines.forEach((line, i) => {
-    const y = startY + i * lineH;
-    const lw = ctx.measureText(line).width;
-    let x;
-    if (align === 'center') x = (W - lw) / 2;
-    else if (align === 'right') x = W - lw - 60;
-    else x = 60;
-    ctx.fillText(line, x, y);
-  });
+  function drawLines(alpha) {
+    ctx.fillStyle = txtColor;
+    ctx.globalAlpha = alpha;
+    lines.forEach((line, i) => {
+      const y = startY + i * lineH;
+      const lw = ctx.measureText(line).width;
+      let x;
+      if (align === 'center') x = (W - lw) / 2;
+      else if (align === 'right') x = W - lw - 60;
+      else x = 60;
+      ctx.fillText(line, x + offsetX, y);
+    });
+  }
+
+  if (glow > 0) {
+    ctx.shadowColor = txtColor;
+    ctx.shadowBlur = glow * 2.5;
+    drawLines(0.6);
+    ctx.shadowBlur = glow;
+    drawLines(0.4);
+  }
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1;
+  drawLines(1);
+}
+
+let previewZoom = 0.5;
+
+function getFitScale(cfg) {
+  const maxW = $('cvs').parentElement.clientWidth - 16;
+  return Math.min(maxW / cfg.W, 1);
+}
+
+function stepZoom(dir) {
+  const cfg = getConfig();
+  const fit = getFitScale(cfg);
+  if (previewZoom === null) previewZoom = fit;
+  const steps = [0.1, 0.15, 0.2, 0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2];
+  const idx = steps.findIndex(s => s > previewZoom + 0.01);
+  if (dir > 0) previewZoom = steps[Math.min(idx === -1 ? steps.length - 1 : idx, steps.length - 1)];
+  else previewZoom = steps[Math.max((idx === -1 ? steps.length : idx) - 2, 0)];
+  render();
+}
+
+function resetZoom() {
+  previewZoom = null;
+  render();
 }
 
 function render() {
   const cfg = getConfig();
   const preview = $('cvs');
   drawToCanvas(preview, cfg);
-  const maxW = preview.parentElement.clientWidth - 32;
-  const scale = Math.min(maxW / cfg.W, 300 / cfg.H, 1);
+  if (showGuides) drawGuides(preview, cfg.W, cfg.H);
+  const scale = previewZoom !== null ? previewZoom : getFitScale(cfg);
   preview.style.width = Math.round(cfg.W * scale) + 'px';
   preview.style.height = Math.round(cfg.H * scale) + 'px';
-  $('sizeBadge').textContent = `${cfg.W} × ${cfg.H} px — scaled preview`;
+  $('zoomOut').textContent = Math.round(scale * 100) + '%';
+  $('sizeBadge').textContent = `${cfg.W} × ${cfg.H} px`;
 }
 
 function openModal() {
@@ -387,8 +602,17 @@ function download() {
   document.body.removeChild(a);
 }
 
+function syncTextareaFont() {
+  $('ascii').style.fontFamily = $('fontfam').value;
+}
+
 ['ascii','orient','fontfam','txtColor','bgColor','align'].forEach(id => {
-  $(id).addEventListener('change', render);
+  $(id).addEventListener('change', () => {
+    if (id === 'fontfam') {
+      syncTextareaFont();
+      document.fonts.load(`16px ${$('fontfam').value}`).then(render);
+    } else render();
+  });
   $(id).addEventListener('input', render);
 });
 
@@ -404,8 +628,20 @@ $('scanlines').addEventListener('input', () => {
   $('slOut').textContent = $('scanlines').value + '%';
   render();
 });
+$('glow').addEventListener('input', () => {
+  $('glowOut').textContent = $('glow').value;
+  render();
+});
+$('offsetX').addEventListener('input', () => {
+  $('offsetXOut').textContent = $('offsetX').value + 'px';
+  render();
+});
+$('offsetY').addEventListener('input', () => {
+  $('offsetYOut').textContent = $('offsetY').value + 'px';
+  render();
+});
 
-render();
+document.fonts.ready.then(() => { syncTextareaFont(); render(); });
 </script>
 </body>
 </html>
