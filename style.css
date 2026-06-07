@@ -1,0 +1,267 @@
+  :root {
+    --green:      #00ff41;
+    --green-dim:  #00ad2b;
+    --green-dark: #003b0f;
+    --green-muted:#1a4d1a;
+    --bg:         #000;
+    --bg2:        #050f05;
+    --bg3:        #0a190a;
+    --border:     #0d3b0d;
+    --border-hi:  #1a6b1a;
+    --text:       #a0c8a0;
+    --text-dim:   #3a6b3a;
+    --font: 'Share Tech Mono', 'Courier New', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem;
+  }
+
+  /* subtle scanline overlay on the whole page */
+  body::before {
+    content: '';
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      rgba(0,0,0,0.12) 3px,
+      rgba(0,0,0,0.12) 4px
+    );
+    z-index: 9999;
+  }
+
+  h1 {
+    font-family: var(--font);
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--green);
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-shadow: 0 0 8px var(--green);
+  }
+  h1::before { content: '> '; opacity: 0.5; }
+
+  .col { display: flex; flex-direction: column; gap: 0.3rem; }
+
+  label {
+    font-family: var(--font);
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  textarea {
+    font-family: var(--font);
+    font-size: 12px;
+    width: 100%;
+    height: 180px;
+    resize: both;
+    overflow: auto;
+    white-space: pre;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 10px;
+    color: var(--green-dim);
+    margin-bottom: 1rem;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  textarea:focus {
+    border-color: var(--green-dim);
+    box-shadow: 0 0 6px rgba(0,173,43,0.3);
+  }
+
+  select, input[type=color] {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    color: var(--text);
+    padding: 5px 8px;
+    font-family: var(--font);
+    font-size: 12px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  select:focus, select:hover { border-color: var(--green-dim); }
+
+  input[type=color] {
+    height: 32px;
+    padding: 2px;
+    cursor: pointer;
+  }
+
+  input[type=range] {
+    width: 100%;
+    accent-color: var(--green-dim);
+    cursor: pointer;
+  }
+
+  .range-row { display: flex; align-items: center; gap: 8px; }
+  .range-row input { flex: 1; }
+  .range-val {
+    font-family: var(--font);
+    font-size: 11px;
+    color: var(--text-dim);
+    min-width: 36px;
+    text-align: right;
+  }
+
+  .step-btn {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    font-size: 14px;
+    line-height: 1;
+    border-radius: 0;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font);
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .step-btn:hover { border-color: var(--green-dim); color: var(--green); }
+
+  .preview-wrap {
+    border: 1px solid var(--border);
+    overflow: auto;
+    margin-bottom: 1rem;
+    background: var(--bg);
+    max-height: 70vh;
+    padding: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  canvas { max-width: 100%; display: block; }
+
+  .size-note {
+    font-family: var(--font);
+    font-size: 10px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .btn-row { display: flex; gap: 8px; }
+
+  .textarea-controls {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 4px;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .textarea-controls button {
+    flex: none;
+    padding: 3px 10px;
+    font-size: 10px;
+    border-radius: 0;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: var(--font);
+    letter-spacing: 0.05em;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .textarea-controls button:hover { border-color: var(--green-dim); color: var(--green); }
+
+  button {
+    flex: 1;
+    padding: 9px 16px;
+    border-radius: 0;
+    border: 1px solid var(--border-hi);
+    background: var(--bg3);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+    text-transform: uppercase;
+  }
+  button:hover {
+    border-color: var(--green-dim);
+    color: var(--green);
+    box-shadow: 0 0 8px rgba(0,173,43,0.2);
+  }
+  button.primary {
+    border-color: var(--green-dim);
+    color: var(--green);
+    background: var(--green-dark);
+  }
+  button.primary:hover {
+    box-shadow: 0 0 12px rgba(0,255,65,0.3);
+  }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-overlay img {
+    max-width: 100%;
+    max-height: 100%;
+    border: 1px solid var(--border-hi);
+    box-shadow: 0 0 40px rgba(0,255,65,0.1);
+    object-fit: contain;
+  }
+  .modal-close {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    background: var(--bg2);
+    border: 1px solid var(--border-hi);
+    color: var(--text);
+    font-size: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    font-family: var(--font);
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .modal-close:hover { color: var(--green); border-color: var(--green-dim); }
+
+  .ctrl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-hi); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--green-dim); }
