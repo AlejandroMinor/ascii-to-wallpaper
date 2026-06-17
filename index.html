@@ -74,6 +74,7 @@ iVRMMMMMMMMMMMMMMMMMMMY;IBWWWWMMXYi=;:::::;RBBBMMMMMMMMMMMMMMBBXi,
 ,,,,,,,,,.,,,,,,,...............................................,,
 itittiiiii+=++=;;=iiiiiiittiiiiii+iii===;++iiitiiiiiii+=====+ii=+i</textarea>
 
+<div class="ctrl-group-label">// Canvas</div>
 <div class="ctrl-grid">
   <div class="col">
     <label>Resolution</label>
@@ -86,6 +87,18 @@ itittiiiii+=++=;;=iiiiiiittiiiiii+iii===;++iiitiiiiiii+=====+ii=+i</textarea>
       <option value="4k-p">4K Portrait — 2160x3840</option>
     </select>
   </div>
+  <div class="col">
+    <label>Background color <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Click the swatch to open the color picker. Click ⊕ then click on the preview canvas to sample a color.</span></span></label>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <input type="color" id="bgColor" value="#0d0d0d" style="display:none">
+      <div class="cp-swatch" data-for="bgColor" style="background:#0d0d0d;" onclick="openCP('bgColor',this)"></div>
+      <button class="step-btn eyedrop-btn" data-target="bgColor" style="width:auto;padding:0 8px;font-size:13px;" onclick="startPick('bgColor')">⊕</button>
+    </div>
+  </div>
+</div>
+
+<div class="ctrl-group-label">// Text</div>
+<div class="ctrl-grid">
   <div class="col">
     <label>Font</label>
     <select id="fontfam">
@@ -118,12 +131,12 @@ itittiiiii+=++=;;=iiiiiiittiiiiii+iii===;++iiitiiiiiii+=====+ii=+i</textarea>
     </div>
   </div>
   <div class="col">
-    <label>Text color</label>
-    <input type="color" id="txtColor" value="#00ad2b">
-  </div>
-  <div class="col">
-    <label>Background color</label>
-    <input type="color" id="bgColor" value="#0d0d0d">
+    <label>Text color <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Click the swatch to open the color picker. Click ⊕ then click on the preview canvas to sample a color.</span></span></label>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <input type="color" id="txtColor" value="#00ad2b" style="display:none">
+      <div class="cp-swatch" data-for="txtColor" style="background:#00ad2b;" onclick="openCP('txtColor',this)"></div>
+      <button class="step-btn eyedrop-btn" data-target="txtColor" style="width:auto;padding:0 8px;font-size:13px;" onclick="startPick('txtColor')">⊕</button>
+    </div>
   </div>
   <div class="col">
     <label>Alignment</label>
@@ -134,42 +147,71 @@ itittiiiii+=++=;;=iiiiiiittiiiiii+iii===;++iiitiiiiiii+=====+ii=+i</textarea>
     </select>
   </div>
   <div class="col">
-    <label>Line height</label>
+    <label>Line height <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Multiplier for vertical spacing between lines. 1.0 = tight, 1.5 = loose.</span></span></label>
     <div class="range-row">
       <input type="range" id="lheight" min="1" max="2.5" value="1.0" step="0.05">
       <span class="range-val" id="lhOut">1.0×</span>
     </div>
   </div>
   <div class="col">
-    <label>Scanlines</label>
-    <div class="range-row">
-      <input type="range" id="scanlines" min="0" max="60" value="0" step="1">
-      <span class="range-val" id="slOut">0%</span>
-    </div>
-  </div>
-  <div class="col">
-    <label>Glow</label>
-    <div class="range-row">
-      <input type="range" id="glow" min="0" max="30" value="0" step="1">
-      <span class="range-val" id="glowOut">0</span>
-    </div>
-  </div>
-  <div class="col">
-    <label>Horizontal offset</label>
+    <label>Horizontal offset <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Shifts the entire text block left or right from its centered position.</span></span></label>
     <div class="range-row">
       <input type="range" id="offsetX" min="-800" max="800" value="0" step="10">
       <span class="range-val" id="offsetXOut">0px</span>
     </div>
   </div>
   <div class="col">
-    <label>Vertical offset</label>
+    <label>Vertical offset <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Shifts the entire text block up or down from its centered position.</span></span></label>
     <div class="range-row">
       <input type="range" id="offsetY" min="-800" max="800" value="0" step="10">
       <span class="range-val" id="offsetYOut">0px</span>
     </div>
   </div>
+</div>
+
+<div class="ctrl-group-label">// Effects</div>
+<div class="ctrl-grid">
   <div class="col">
-    <label>Background image</label>
+    <label>Glow <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Adds a blurred halo around the text using the text color. Higher values = wider glow.</span></span></label>
+    <div class="range-row">
+      <input type="range" id="glow" min="0" max="30" value="0" step="1">
+      <span class="range-val" id="glowOut">0</span>
+    </div>
+  </div>
+  <div class="col">
+    <label>Text shadow <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Adds a dark drop shadow behind the text to improve legibility against busy backgrounds. Unlike Glow, uses black.</span></span></label>
+    <div class="range-row">
+      <input type="range" id="shadow" min="0" max="30" value="0" step="1">
+      <span class="range-val" id="shadowOut">0</span>
+    </div>
+  </div>
+  <div class="col">
+    <label>Chromatic aberration <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Splits text into RGB channels with a horizontal offset, simulating lens distortion or a misaligned CRT beam.</span></span></label>
+    <div class="range-row">
+      <input type="range" id="aberration" min="0" max="20" value="0" step="1">
+      <span class="range-val" id="aberrationOut">0px</span>
+    </div>
+  </div>
+  <div class="col">
+    <label>Scanlines <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Overlays horizontal bright lines across the entire image, simulating a CRT monitor display.</span></span></label>
+    <div class="range-row">
+      <input type="range" id="scanlines" min="0" max="60" value="0" step="1">
+      <span class="range-val" id="slOut">0%</span>
+    </div>
+  </div>
+  <div class="col">
+    <label>Film grain <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Adds random pixel noise over the entire image, simulating analog film texture.</span></span></label>
+    <div class="range-row">
+      <input type="range" id="grain" min="0" max="100" value="0" step="1">
+      <span class="range-val" id="grainOut">0%</span>
+    </div>
+  </div>
+</div>
+
+<div class="ctrl-group-label">// Background image</div>
+<div class="ctrl-grid">
+  <div class="col">
+    <label>Image</label>
     <div style="display:flex;gap:6px;">
       <button class="step-btn" style="width:auto;padding:0 8px;font-size:11px;" onclick="$('bgImgInput').click()">Load</button>
       <button class="step-btn" id="bgImgClear" style="width:auto;padding:0 8px;font-size:11px;display:none;" onclick="clearBgImage()">Clear</button>
@@ -177,29 +219,15 @@ itittiiiii+=++=;;=iiiiiiittiiiiii+iii===;++iiitiiiiiii+=====+ii=+i</textarea>
     </div>
     <input type="file" id="bgImgInput" accept="image/*" style="display:none">
   </div>
-  <div class="col">
-    <label>Film grain</label>
-    <div class="range-row">
-      <input type="range" id="grain" min="0" max="100" value="0" step="1">
-      <span class="range-val" id="grainOut">0%</span>
-    </div>
-  </div>
-  <div class="col">
-    <label>Chromatic aberration</label>
-    <div class="range-row">
-      <input type="range" id="aberration" min="0" max="20" value="0" step="1">
-      <span class="range-val" id="aberrationOut">0px</span>
-    </div>
-  </div>
   <div class="col" id="bgBlurCol" style="display:none">
-    <label>BG blur</label>
+    <label>Blur <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Blurs the background image. Edge artifacts are hidden automatically by extending the draw area.</span></span></label>
     <div class="range-row">
-      <input type="range" id="bgBlur" min="0" max="80" value="20" step="1">
-      <span class="range-val" id="bgBlurOut">20px</span>
+      <input type="range" id="bgBlur" min="0" max="80" value="5" step="1">
+      <span class="range-val" id="bgBlurOut">5px</span>
     </div>
   </div>
   <div class="col" id="bgDimCol" style="display:none">
-    <label>BG dim</label>
+    <label>Dim <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Darkens the background image with a black overlay to improve text contrast.</span></span></label>
     <div class="range-row">
       <input type="range" id="bgDim" min="0" max="100" value="40" step="1">
       <span class="range-val" id="bgDimOut">40%</span>
@@ -225,6 +253,22 @@ itittiiiii+=++=;;=iiiiiiittiiiiii+iii===;++iiitiiiiiii+=====+ii=+i</textarea>
   <button onclick="render()">↺ Refresh preview</button>
   <button onclick="openModal()">⤢ Full preview</button>
   <button class="primary" onclick="download()">⬇ Download PNG</button>
+</div>
+
+<div id="cpPopup" class="cp-popup" style="display:none">
+  <div class="cp-sv-wrap">
+    <canvas id="cpSV" width="200" height="150"></canvas>
+    <div id="cpCursor" class="cp-cursor"></div>
+  </div>
+  <div class="cp-hue-wrap">
+    <canvas id="cpHue" width="200" height="14"></canvas>
+    <div id="cpHueCursor" class="cp-hue-cursor"></div>
+  </div>
+  <div class="cp-bottom">
+    <div id="cpPreview" class="cp-preview"></div>
+    <span class="cp-hash">#</span>
+    <input type="text" id="cpHex" class="cp-hex" maxlength="6" spellcheck="false">
+  </div>
 </div>
 
 <div class="modal-overlay" id="modal" onclick="closeModal()">

@@ -52,6 +52,41 @@ function stepTextarea(delta) {
 let pinchDist0 = null;
 let taSize0 = null;
 document.addEventListener('DOMContentLoaded', () => {
+  // SV canvas drag
+  const svCv = $('cpSV');
+  let svDown = false;
+  function cpSVInteract(e) {
+    const r = svCv.getBoundingClientRect();
+    cpS = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    cpV = 1 - Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
+    cpDrawSV(); cpUpdateUI(); cpApply();
+  }
+  svCv.addEventListener('mousedown', e => { svDown = true; cpSVInteract(e); });
+  document.addEventListener('mousemove', e => { if (svDown) cpSVInteract(e); });
+  document.addEventListener('mouseup', () => { svDown = false; });
+
+  // Hue slider drag
+  const hueCv = $('cpHue');
+  let hueDown = false;
+  function cpHueInteract(e) {
+    const r = hueCv.getBoundingClientRect();
+    cpH = Math.max(0, Math.min(360, (e.clientX - r.left) / r.width * 360));
+    cpDrawSV(); cpUpdateUI(); cpApply();
+  }
+  hueCv.addEventListener('mousedown', e => { hueDown = true; cpHueInteract(e); });
+  document.addEventListener('mousemove', e => { if (hueDown) cpHueInteract(e); });
+  document.addEventListener('mouseup', () => { hueDown = false; });
+
+  // Hex input
+  $('cpHex').addEventListener('input', e => {
+    if (e.target.value.length === 6) {
+      const [r, g, b] = hexToRgb('#' + e.target.value);
+      [cpH, cpS, cpV] = rgbToHsv(r, g, b);
+      cpDrawSV(); cpUpdateUI(); cpApply();
+    }
+  });
+  $('cpHex').addEventListener('click', e => e.stopPropagation());
+
   $('ascii').addEventListener('touchstart', e => {
     if (e.touches.length === 2) {
       const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -155,11 +190,12 @@ function getConfig() {
     bgDim: parseInt($('bgDim').value) / 100,
     grain: parseInt($('grain').value),
     aberration: parseInt($('aberration').value),
+    shadow: parseInt($('shadow').value),
   };
 }
 
 function drawToCanvas(canvas, cfg) {
-  const { W, H, text, font, fsize, txtColor, bgColor, align, lheight, scanlines, glow, offsetX, offsetY, bgBlur, bgDim, grain, aberration } = cfg;
+  const { W, H, text, font, fsize, txtColor, bgColor, align, lheight, scanlines, glow, offsetX, offsetY, bgBlur, bgDim, grain, aberration, shadow } = cfg;
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d');
@@ -203,6 +239,19 @@ function drawToCanvas(canvas, cfg) {
       else x = 60;
       ctx.fillText(line, x + offsetX + xShift, y);
     });
+  }
+
+
+  if (shadow > 0) {
+    ctx.shadowColor = 'rgba(0,0,0,1)';
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowBlur = Math.min(4 + shadow * 1.5, 48);
+    const sPasses = shadow <= 8 ? 1 : shadow <= 18 ? 2 : 3;
+    for (let i = 0; i < sPasses; i++) drawLines(1, '#000000');
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
   }
 
   if (glow > 0) {
@@ -292,6 +341,25 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeModal();
 });
 
+$('cvs').addEventListener('click', e => {
+  if (!pickMode) return;
+  const rect = $('cvs').getBoundingClientRect();
+  const scaleX = $('cvs').width / rect.width;
+  const scaleY = $('cvs').height / rect.height;
+  const x = Math.floor((e.clientX - rect.left) * scaleX);
+  const y = Math.floor((e.clientY - rect.top) * scaleY);
+  const [r, g, b] = $('cvs').getContext('2d').getImageData(x, y, 1, 1).data;
+  const hex = '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+  $(pickMode).value = hex;
+  document.querySelector(`.cp-swatch[data-for="${pickMode}"]`).style.background = hex;
+  pickMode = null;
+  $('cvs').style.cursor = '';
+  document.querySelectorAll('.eyedrop-btn').forEach(b => {
+    b.style.color = ''; b.style.borderColor = '';
+  });
+  render();
+});
+
 function download() {
   const cfg = getConfig();
   const c = document.createElement('canvas');
@@ -303,6 +371,121 @@ function download() {
   a.click();
   document.body.removeChild(a);
 }
+
+// ── Color picker ─────────────────────────────────────────────
+let cpTarget = null, cpH = 120, cpS = 0.8, cpV = 0.7;
+
+function hsvToRgb(h, s, v) {
+  const f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
+  return [Math.round(f(5) * 255), Math.round(f(3) * 255), Math.round(f(1) * 255)];
+}
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+function hexToRgb(hex) {
+  const m = hex.replace('#', '').match(/../g);
+  return m ? m.map(x => parseInt(x, 16)) : [0, 255, 0];
+}
+function rgbToHsv(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), d = max - Math.min(r, g, b);
+  let h = 0;
+  if (d) {
+    if (max === r) h = ((g - b) / d + 6) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+  }
+  return [h, max ? d / max : 0, max];
+}
+
+function cpDrawSV() {
+  const cv = $('cpSV'), ctx = cv.getContext('2d');
+  const gH = ctx.createLinearGradient(0, 0, cv.width, 0);
+  gH.addColorStop(0, '#fff');
+  gH.addColorStop(1, `hsl(${cpH},100%,50%)`);
+  ctx.fillStyle = gH; ctx.fillRect(0, 0, cv.width, cv.height);
+  const gV = ctx.createLinearGradient(0, 0, 0, cv.height);
+  gV.addColorStop(0, 'rgba(0,0,0,0)');
+  gV.addColorStop(1, 'rgba(0,0,0,1)');
+  ctx.fillStyle = gV; ctx.fillRect(0, 0, cv.width, cv.height);
+}
+function cpDrawHue() {
+  const cv = $('cpHue'), ctx = cv.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, cv.width, 0);
+  for (let i = 0; i <= 6; i++) g.addColorStop(i / 6, `hsl(${i * 60},100%,50%)`);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, cv.width, cv.height);
+}
+function cpUpdateUI() {
+  const [r, g, b] = hsvToRgb(cpH, cpS, cpV);
+  const hex = rgbToHex(r, g, b);
+  $('cpHex').value = hex.slice(1).toUpperCase();
+  $('cpPreview').style.background = hex;
+  const sv = $('cpSV');
+  $('cpCursor').style.left = (cpS * sv.width) + 'px';
+  $('cpCursor').style.top = ((1 - cpV) * sv.height) + 'px';
+  $('cpHueCursor').style.left = (cpH / 360 * $('cpHue').width) + 'px';
+}
+function cpApply() {
+  if (!cpTarget) return;
+  const [r, g, b] = hsvToRgb(cpH, cpS, cpV);
+  const hex = rgbToHex(r, g, b);
+  $(cpTarget).value = hex;
+  document.querySelector(`.cp-swatch[data-for="${cpTarget}"]`).style.background = hex;
+  render();
+}
+
+function openCP(targetId, triggerEl) {
+  if (cpTarget === targetId && $('cpPopup').style.display !== 'none') {
+    closeCP(); return;
+  }
+  cpTarget = targetId;
+  const [r, g, b] = hexToRgb($(targetId).value);
+  [cpH, cpS, cpV] = rgbToHsv(r, g, b);
+  const popup = $('cpPopup');
+  popup.style.display = 'flex';
+  cpDrawSV(); cpDrawHue(); cpUpdateUI();
+  const rect = triggerEl.getBoundingClientRect();
+  let left = rect.left, top = rect.bottom + 6;
+  if (left + 220 > window.innerWidth) left = window.innerWidth - 224;
+  if (top + 250 > window.innerHeight) top = rect.top - 256;
+  popup.style.left = left + 'px';
+  popup.style.top = top + 'px';
+}
+function closeCP() {
+  $('cpPopup').style.display = 'none';
+  cpTarget = null;
+}
+
+document.addEventListener('click', e => {
+  const popup = $('cpPopup');
+  if (popup && popup.style.display !== 'none'
+    && !popup.contains(e.target)
+    && !e.target.classList.contains('cp-swatch')) closeCP();
+});
+
+// ── Canvas eyedropper ─────────────────────────────────────────
+let pickMode = null;
+
+function startPick(targetId) {
+  closeCP();
+  pickMode = targetId;
+  $('cvs').style.cursor = 'crosshair';
+  document.querySelectorAll('.eyedrop-btn').forEach(b => {
+    b.style.color = b.dataset.target === targetId ? 'var(--green)' : '';
+    b.style.borderColor = b.dataset.target === targetId ? 'var(--green-dim)' : '';
+  });
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && pickMode) {
+    pickMode = null;
+    $('cvs').style.cursor = '';
+    document.querySelectorAll('.eyedrop-btn').forEach(b => {
+      b.style.color = ''; b.style.borderColor = '';
+    });
+  }
+});
 
 function syncTextareaFont() {
   $('ascii').style.fontFamily = $('fontfam').value;
@@ -349,6 +532,10 @@ $('grain').addEventListener('input', () => {
 });
 $('aberration').addEventListener('input', () => {
   $('aberrationOut').textContent = $('aberration').value + 'px';
+  render();
+});
+$('shadow').addEventListener('input', () => {
+  $('shadowOut').textContent = $('shadow').value;
   render();
 });
 $('bgBlur').addEventListener('input', () => {
