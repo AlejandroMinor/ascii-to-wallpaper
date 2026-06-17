@@ -168,6 +168,43 @@ itittiiiii+=++=;;=iiiiiiittiiiiii+iii===;++iiitiiiiiii+=====+ii=+i</textarea>
       <span class="range-val" id="offsetYOut">0px</span>
     </div>
   </div>
+  <div class="col">
+    <label>Background image</label>
+    <div style="display:flex;gap:6px;">
+      <button class="step-btn" style="width:auto;padding:0 8px;font-size:11px;" onclick="$('bgImgInput').click()">Load</button>
+      <button class="step-btn" id="bgImgClear" style="width:auto;padding:0 8px;font-size:11px;display:none;" onclick="clearBgImage()">Clear</button>
+      <span id="bgImgName" style="font-size:11px;color:#555;align-self:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+    </div>
+    <input type="file" id="bgImgInput" accept="image/*" style="display:none">
+  </div>
+  <div class="col">
+    <label>Film grain</label>
+    <div class="range-row">
+      <input type="range" id="grain" min="0" max="100" value="0" step="1">
+      <span class="range-val" id="grainOut">0%</span>
+    </div>
+  </div>
+  <div class="col">
+    <label>Chromatic aberration</label>
+    <div class="range-row">
+      <input type="range" id="aberration" min="0" max="20" value="0" step="1">
+      <span class="range-val" id="aberrationOut">0px</span>
+    </div>
+  </div>
+  <div class="col" id="bgBlurCol" style="display:none">
+    <label>BG blur</label>
+    <div class="range-row">
+      <input type="range" id="bgBlur" min="0" max="80" value="20" step="1">
+      <span class="range-val" id="bgBlurOut">20px</span>
+    </div>
+  </div>
+  <div class="col" id="bgDimCol" style="display:none">
+    <label>BG dim</label>
+    <div class="range-row">
+      <input type="range" id="bgDim" min="0" max="100" value="40" step="1">
+      <span class="range-val" id="bgDimOut">40%</span>
+    </div>
+  </div>
 </div>
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;gap:8px;">

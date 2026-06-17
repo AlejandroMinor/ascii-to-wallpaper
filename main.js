@@ -102,6 +102,34 @@ async function pasteAscii() {
   }
 }
 
+let bgImage = null;
+
+$('bgImgInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => {
+    bgImage = img;
+    $('bgImgName').textContent = file.name;
+    $('bgImgClear').style.display = '';
+    $('bgBlurCol').style.display = '';
+    $('bgDimCol').style.display = '';
+    render();
+  };
+  img.src = url;
+  e.target.value = '';
+});
+
+function clearBgImage() {
+  bgImage = null;
+  $('bgImgName').textContent = '';
+  $('bgImgClear').style.display = 'none';
+  $('bgBlurCol').style.display = 'none';
+  $('bgDimCol').style.display = 'none';
+  render();
+}
+
 const RESOLUTIONS = {
   'fhd-l': [1920, 1080], 'fhd-p': [1080, 1920],
   '2k-l':  [2560, 1440], '2k-p':  [1440, 2560],
@@ -123,17 +151,30 @@ function getConfig() {
     glow: parseInt($('glow').value),
     offsetX: parseInt($('offsetX').value),
     offsetY: parseInt($('offsetY').value),
+    bgBlur: parseInt($('bgBlur').value),
+    bgDim: parseInt($('bgDim').value) / 100,
+    grain: parseInt($('grain').value),
+    aberration: parseInt($('aberration').value),
   };
 }
 
 function drawToCanvas(canvas, cfg) {
-  const { W, H, text, font, fsize, txtColor, bgColor, align, lheight, scanlines, glow, offsetX, offsetY } = cfg;
+  const { W, H, text, font, fsize, txtColor, bgColor, align, lheight, scanlines, glow, offsetX, offsetY, bgBlur, bgDim, grain, aberration } = cfg;
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d');
 
   ctx.fillStyle = bgColor;
   ctx.fillRect(0, 0, W, H);
+
+  if (bgImage) {
+    const pad = bgBlur * 2;
+    ctx.filter = `blur(${bgBlur}px)`;
+    ctx.drawImage(bgImage, -pad, -pad, W + pad * 2, H + pad * 2);
+    ctx.filter = 'none';
+    ctx.fillStyle = `rgba(0,0,0,${bgDim})`;
+    ctx.fillRect(0, 0, W, H);
+  }
 
   if (scanlines > 0) {
     for (let y = 0; y < H; y += 4) {
@@ -150,8 +191,8 @@ function drawToCanvas(canvas, cfg) {
   const totalH = lines.length * lineH;
   const startY = (H - totalH) / 2 + offsetY;
 
-  function drawLines(alpha) {
-    ctx.fillStyle = txtColor;
+  function drawLines(alpha, color = txtColor, xShift = 0) {
+    ctx.fillStyle = color;
     ctx.globalAlpha = alpha;
     lines.forEach((line, i) => {
       const y = startY + i * lineH;
@@ -160,7 +201,7 @@ function drawToCanvas(canvas, cfg) {
       if (align === 'center') x = (W - lw) / 2;
       else if (align === 'right') x = W - lw - 60;
       else x = 60;
-      ctx.fillText(line, x + offsetX, y);
+      ctx.fillText(line, x + offsetX + xShift, y);
     });
   }
 
@@ -172,8 +213,32 @@ function drawToCanvas(canvas, cfg) {
     drawLines(0.4);
   }
   ctx.shadowBlur = 0;
+
+  if (aberration > 0) {
+    ctx.globalCompositeOperation = 'screen';
+    drawLines(0.75, `rgb(255,0,0)`, -aberration);
+    drawLines(0.75, `rgb(0,255,0)`, 0);
+    drawLines(0.75, `rgb(0,0,255)`, aberration);
+    ctx.globalCompositeOperation = 'source-over';
+  } else {
+    ctx.globalAlpha = 1;
+    drawLines(1);
+  }
+
   ctx.globalAlpha = 1;
-  drawLines(1);
+
+  if (grain > 0) {
+    const count = Math.floor(W * H * (grain / 100) * 0.15);
+    for (let i = 0; i < count; i++) {
+      const x = Math.random() * W;
+      const y = Math.random() * H;
+      const alpha = Math.random() * 0.35;
+      ctx.fillStyle = Math.random() > 0.5
+        ? `rgba(255,255,255,${alpha})`
+        : `rgba(0,0,0,${alpha})`;
+      ctx.fillRect(x, y, 1.5, 1.5);
+    }
+  }
 }
 
 let previewZoom = 0.5;
@@ -275,6 +340,23 @@ $('offsetX').addEventListener('input', () => {
 });
 $('offsetY').addEventListener('input', () => {
   $('offsetYOut').textContent = $('offsetY').value + 'px';
+  render();
+});
+
+$('grain').addEventListener('input', () => {
+  $('grainOut').textContent = $('grain').value + '%';
+  render();
+});
+$('aberration').addEventListener('input', () => {
+  $('aberrationOut').textContent = $('aberration').value + 'px';
+  render();
+});
+$('bgBlur').addEventListener('input', () => {
+  $('bgBlurOut').textContent = $('bgBlur').value + 'px';
+  render();
+});
+$('bgDim').addEventListener('input', () => {
+  $('bgDimOut').textContent = $('bgDim').value + '%';
   render();
 });
 
