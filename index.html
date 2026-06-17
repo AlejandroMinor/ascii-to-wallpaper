@@ -219,6 +219,35 @@ itittiiiii+=++=;;=iiiiiiittiiiiii+iii===;++iiitiiiiiii+=====+ii=+i</textarea>
     </div>
     <input type="file" id="bgImgInput" accept="image/*" style="display:none">
   </div>
+  <div class="col" id="bgFitCol" style="display:none">
+    <label>Fit <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Cover: fills the canvas, may crop. Contain: shows full image, may letterbox. Stretch: distorts to fill.</span></span></label>
+    <select id="bgFit">
+      <option value="cover">Cover</option>
+      <option value="contain">Contain</option>
+      <option value="stretch">Stretch</option>
+    </select>
+  </div>
+  <div class="col" id="bgScaleCol" style="display:none">
+    <label>Scale <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Zoom the background image in or out independently of fit mode.</span></span></label>
+    <div class="range-row">
+      <input type="range" id="bgScale" min="10" max="300" value="100" step="1">
+      <span class="range-val" id="bgScaleOut">100%</span>
+    </div>
+  </div>
+  <div class="col" id="bgPosXCol" style="display:none">
+    <label>X position <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Shifts the background image left or right.</span></span></label>
+    <div class="range-row">
+      <input type="range" id="bgPosX" min="-2000" max="2000" value="0" step="10">
+      <span class="range-val" id="bgPosXOut">0px</span>
+    </div>
+  </div>
+  <div class="col" id="bgPosYCol" style="display:none">
+    <label>Y position <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Shifts the background image up or down.</span></span></label>
+    <div class="range-row">
+      <input type="range" id="bgPosY" min="-2000" max="2000" value="0" step="10">
+      <span class="range-val" id="bgPosYOut">0px</span>
+    </div>
+  </div>
   <div class="col" id="bgBlurCol" style="display:none">
     <label>Blur <span class="tip-wrap"><span class="tip-icon">[?]</span><span class="tip-box">Blurs the background image. Edge artifacts are hidden automatically by extending the draw area.</span></span></label>
     <div class="range-row">

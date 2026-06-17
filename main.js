@@ -148,8 +148,8 @@ $('bgImgInput').addEventListener('change', e => {
     bgImage = img;
     $('bgImgName').textContent = file.name;
     $('bgImgClear').style.display = '';
-    $('bgBlurCol').style.display = '';
-    $('bgDimCol').style.display = '';
+    ['bgFitCol','bgScaleCol','bgPosXCol','bgPosYCol','bgBlurCol','bgDimCol']
+      .forEach(id => $(id).style.display = '');
     render();
   };
   img.src = url;
@@ -160,8 +160,8 @@ function clearBgImage() {
   bgImage = null;
   $('bgImgName').textContent = '';
   $('bgImgClear').style.display = 'none';
-  $('bgBlurCol').style.display = 'none';
-  $('bgDimCol').style.display = 'none';
+  ['bgFitCol','bgScaleCol','bgPosXCol','bgPosYCol','bgBlurCol','bgDimCol']
+    .forEach(id => $(id).style.display = 'none');
   render();
 }
 
@@ -186,6 +186,10 @@ function getConfig() {
     glow: parseInt($('glow').value),
     offsetX: parseInt($('offsetX').value),
     offsetY: parseInt($('offsetY').value),
+    bgFit: $('bgFit').value,
+    bgScale: parseInt($('bgScale').value) / 100,
+    bgPosX: parseInt($('bgPosX').value),
+    bgPosY: parseInt($('bgPosY').value),
     bgBlur: parseInt($('bgBlur').value),
     bgDim: parseInt($('bgDim').value) / 100,
     grain: parseInt($('grain').value),
@@ -195,7 +199,7 @@ function getConfig() {
 }
 
 function drawToCanvas(canvas, cfg) {
-  const { W, H, text, font, fsize, txtColor, bgColor, align, lheight, scanlines, glow, offsetX, offsetY, bgBlur, bgDim, grain, aberration, shadow } = cfg;
+  const { W, H, text, font, fsize, txtColor, bgColor, align, lheight, scanlines, glow, offsetX, offsetY, bgFit, bgScale, bgPosX, bgPosY, bgBlur, bgDim, grain, aberration, shadow } = cfg;
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d');
@@ -204,9 +208,25 @@ function drawToCanvas(canvas, cfg) {
   ctx.fillRect(0, 0, W, H);
 
   if (bgImage) {
+    const imgAspect = bgImage.naturalWidth / bgImage.naturalHeight;
+    const canvasAspect = W / H;
+    let drawW, drawH;
+    if (bgFit === 'stretch') {
+      drawW = W; drawH = H;
+    } else if (bgFit === 'cover') {
+      if (imgAspect > canvasAspect) { drawH = H; drawW = H * imgAspect; }
+      else { drawW = W; drawH = W / imgAspect; }
+    } else {
+      if (imgAspect > canvasAspect) { drawW = W; drawH = W / imgAspect; }
+      else { drawH = H; drawW = H * imgAspect; }
+    }
+    drawW *= bgScale;
+    drawH *= bgScale;
+    const drawX = (W - drawW) / 2 + bgPosX;
+    const drawY = (H - drawH) / 2 + bgPosY;
     const pad = bgBlur * 2;
     ctx.filter = `blur(${bgBlur}px)`;
-    ctx.drawImage(bgImage, -pad, -pad, W + pad * 2, H + pad * 2);
+    ctx.drawImage(bgImage, drawX - pad, drawY - pad, drawW + pad * 2, drawH + pad * 2);
     ctx.filter = 'none';
     ctx.fillStyle = `rgba(0,0,0,${bgDim})`;
     ctx.fillRect(0, 0, W, H);
@@ -536,6 +556,19 @@ $('aberration').addEventListener('input', () => {
 });
 $('shadow').addEventListener('input', () => {
   $('shadowOut').textContent = $('shadow').value;
+  render();
+});
+$('bgFit').addEventListener('change', render);
+$('bgScale').addEventListener('input', () => {
+  $('bgScaleOut').textContent = $('bgScale').value + '%';
+  render();
+});
+$('bgPosX').addEventListener('input', () => {
+  $('bgPosXOut').textContent = $('bgPosX').value + 'px';
+  render();
+});
+$('bgPosY').addEventListener('input', () => {
+  $('bgPosYOut').textContent = $('bgPosY').value + 'px';
   render();
 });
 $('bgBlur').addEventListener('input', () => {
