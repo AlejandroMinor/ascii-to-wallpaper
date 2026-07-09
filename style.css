@@ -383,3 +383,34 @@
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--border-hi); }
   ::-webkit-scrollbar-thumb:hover { background: var(--green-dim); }
+
+  /* footer */
+  #site-footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  #site-footer a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--green-dim);
+    text-decoration: none;
+    transition: color 0.15s, text-shadow 0.15s;
+  }
+  #site-footer a:hover {
+    color: var(--green);
+    text-shadow: 0 0 8px var(--green);
+  }
+  #site-footer .footer-sep {
+    color: var(--border-hi);
+  }
