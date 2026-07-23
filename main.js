@@ -167,6 +167,7 @@ function clearBgImage() {
 
 const RESOLUTIONS = {
   'fhd-l': [1920, 1080], 'fhd-p': [1080, 1920],
+  'wuxga-l': [1920, 1200], 'wuxga-p': [1200, 1920],
   '2k-l':  [2560, 1440], '2k-p':  [1440, 2560],
   '4k-l':  [3840, 2160], '4k-p':  [2160, 3840],
 };
@@ -515,7 +516,7 @@ function syncTextareaFont() {
   $(id).addEventListener('change', () => {
     if (id === 'fontfam') {
       syncTextareaFont();
-      document.fonts.load(`16px ${$('fontfam').value}`).then(render);
+      document.fonts.load(`16px ${$('fontfam').value`).then(render);
     } else render();
   });
   $(id).addEventListener('input', render);
