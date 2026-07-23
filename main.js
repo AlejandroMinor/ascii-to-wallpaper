@@ -516,7 +516,7 @@ function syncTextareaFont() {
   $(id).addEventListener('change', () => {
     if (id === 'fontfam') {
       syncTextareaFont();
-      document.fonts.load(`16px ${$('fontfam').value`).then(render);
+      document.fonts.load(`16px ${$('fontfam').value}`).then(render);
     } else render();
   });
   $(id).addEventListener('input', render);
