@@ -7,7 +7,7 @@ Generate wallpapers from ASCII or braille art directly in your browser — no in
 ## Features
 
 - Paste any ASCII or braille art and export it as a wallpaper
-- Resolutions: FHD (1920×1080), WUXGA (1920×1200), 2K (2560×1440), and 4K (3840×2160) — landscape and portrait
+- Multiple built-in resolutions and orientations — landscape, portrait, and square (FHD, 2K, 4K, and more)
 - Controls: font family, font size, text color, background color, alignment, line height, scanlines effect
 - Clear and Paste buttons on the text area (Clipboard API, works on mobile)
 - Fullscreen modal preview before downloading
